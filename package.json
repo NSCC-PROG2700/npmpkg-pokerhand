@@ -1,4 +1,11 @@
 {
   "name": "@macaines/pokerhand",
-  "version": "1.0.0"
+  "version": "0.0.3",
+  "description": "module to generate poker hand",
+  "license": "MIT",
+  "repository": "macaines/pokerhand",
+  "main": "index.js",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
 }
