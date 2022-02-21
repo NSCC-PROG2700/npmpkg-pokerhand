@@ -1,6 +1,8 @@
 const suitsManager = require('./src/cardSuitsManager')
 const valuesManager = require('./src/cardValuesManager')
 const cardGenerator = require('./src/cardGenerator')
+const payload = require('./src/payload')
+const _ = require('lodash')
 
 module.exports = {
     generateRoyalFlush: () => {
