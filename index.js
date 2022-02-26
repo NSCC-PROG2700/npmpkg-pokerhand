@@ -3,8 +3,9 @@ const valuesManager = require('./src/cardValuesManager')
 const cardGenerator = require('./src/cardGenerator')
 const payload = require('./src/payload')
 const _ = require('lodash')
+const handCalculator = require('./src/handCalculator')
 
-module.exports = {
+const functions = {
     generateRoyalFlush: () => {
         const randomSuit = suitsManager.getRandomSuit()
         const royalFlushValues = valuesManager.getRoyalFlushValues()
@@ -64,14 +65,18 @@ module.exports = {
         return payload
     },
     generateFlush: () => {
-        const randomSuit = suitsManager.getRandomSuit()
-        const highCardHand = valuesManager.getHighCardHand()
+        let cards;
+
+        do {
+          const randomSuit = suitsManager.getRandomSuit()
+          const randomValues = valuesManager.getRandomValue({ numberOfValues: 5 })
+        
+          cards = randomValues.map(value => {
+            return cardGenerator.generateCard(value, randomSuit)
+          })
+        } while( handCalculator.calculateHand(cards) !== 'Flush' )
       
-        const cards = highCardHand.map(value => {
-          return cardGenerator.generateCard(value, randomSuit)
-        })
-      
-        payload.cards = _.shuffle(cards)
+        payload.cards = cards
         return payload
     },
     generateStraight: () => {
@@ -153,39 +158,28 @@ module.exports = {
         return payload
     },
     generateHighCard: () => {
-        function isAllSameSuit(arrayOfSuits){
-            if(arrayOfSuits.length <= 1){
-              return false;
-            }
-            for(let i=1; i<arrayOfSuits.length; i++){
-              if(arrayOfSuits[i].code !== arrayOfSuits[i-1].code){
-                return false;
-              }
-            }
-            return true;
-        }
+        let hand; 
+        do{
+            hand = generateRandomHand()
+        } while (!handCalculator.calculateHand(hand.cards).toUpperCase().includes('HIGH CARD'))
         
-        const highCardHand = valuesManager.getHighCardHand()
-        
-        const randomSuits = []
-        while(randomSuits.length < 5){
-            const newSuit = suitsManager.getRandomSuit()
-            if(randomSuits.length < 4){
-              randomSuits.push(newSuit)
-            } else if (!isAllSameSuit(randomSuits)) {
-              randomSuits.push(newSuit)
-            } else if (randomSuits[0].code !== newSuit.code) {
-              randomSuits.push(newSuit)
-            }
-        }
-        
+        return hand
+    },
+    generateRandomHand: () => {
+        const fiveRandomValues = valuesManager.getRandomValue({numberOfValues: 5})
+        const fiveRandomSuits = suitsManager.getRandomSuit({numberOfSuits: 5})
+      
         const cards = []
-        highCardHand.forEach((value, index) => {
-            cards.push(cardGenerator.generateCard(value, randomSuits[index]))
+        fiveRandomValues.forEach((value, index) => {
+            cards.push(cardGenerator.generateCard(value, fiveRandomSuits[index]))
         })
-        
+
         //build the payload
         payload.cards = _.shuffle(cards)
-        return payload   
+        return payload 
     }
 }
+
+const generateRandomHand = functions.generateRandomHand
+
+module.exports = functions
