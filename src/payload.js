@@ -1,7 +1,7 @@
 const payload = {
     success: true,
     deck_id: "testdeck",
-    cards: [],
+    cards: null,
     remaining: 47
 }
 
