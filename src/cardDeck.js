@@ -524,6 +524,6 @@ deck = [
 ]
 
 module.exports = {
-    fresh: _.cloneDeep(deck),
-    shuffled: _.shuffle(deck),
+    getFresh: () => _.cloneDeep(deck),
+    getShuffled: () => _.shuffle(deck),
 }

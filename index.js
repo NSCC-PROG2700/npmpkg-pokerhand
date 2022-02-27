@@ -173,7 +173,7 @@ const functions = {
     },
     generateRandomHand: () => {
         //draw five cards from a shuffled deck
-        const fiveCards = cardDeck.shuffled.slice(0,5)
+        const fiveCards = cardDeck.getShuffled().slice(0,5)
 
         const cards = []
         fiveCards.forEach(card => {
