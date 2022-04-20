@@ -102,7 +102,7 @@ const functions = {
         //generate and add two extra cards to go with the three of a kind
         const options = {
           numberOfRanks: 2,
-          exclude: randomRank //exclude the rank from the three of a kind
+          exclude: rank //exclude the rank from the three of a kind
         }
         ranksManager.getRandomRank(options).forEach(rank => {
           const newCard = cardGenerator.generateCard(rank, suitsManager.getRandomSuit())
