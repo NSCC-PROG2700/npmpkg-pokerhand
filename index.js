@@ -5,8 +5,12 @@ const payload = require('./src/payload')
 const _ = require('lodash')
 const handCalculator = require('./src/handCalculator')
 const cardDeck = require('./src/cardDeck')
+const pjson = require('./package.json')
 
 const functions = {
+    getVersion: () => {
+        return pjson.version
+    },
     generateRoyalFlush: () => {
         const suit = suitsManager.getRandomSuit()
         const ranks = ranksManager.getRoyalFlushRanks()
