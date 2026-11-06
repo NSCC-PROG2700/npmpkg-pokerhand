@@ -73,6 +73,8 @@ They all return the same shape:
 
 Aces count high or low in straights: both 10-J-Q-K-A and A-2-3-4-5 are straights.
 
+It throws a `TypeError` if the input isn't exactly five valid, distinct cards. The message names the problem, for example `card 3 has an unknown value "TEN"` or `the hand contains the ACE of SPADES more than once`. Values and suits must match the formats above exactly, so `'ace'`, `10` (a number) and `'S'` are rejected.
+
 ## Other
 
 `getVersion()` returns the installed package version.
