@@ -1,0 +1,50 @@
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const { calculateHand } = require('../src/handCalculator')
+
+//build a hand from short codes, e.g. 'AS 0H JD' (rank code + suit code, 0 = 10)
+const VALUES = { A: 'ACE', 0: '10', J: 'JACK', Q: 'QUEEN', K: 'KING' }
+const SUITS = { S: 'SPADES', C: 'CLUBS', H: 'HEARTS', D: 'DIAMONDS' }
+const hand = codes => codes.split(' ').map(([rank, suit]) => ({
+    code: rank + suit,
+    value: VALUES[rank] || rank,
+    suit: SUITS[suit]
+}))
+
+const cases = [
+    //one of each hand type
+    ['0S JS QS KS AS', 'Royal Flush'],
+    ['5H 6H 7H 8H 9H', 'Straight Flush'],
+    ['7S 7C 7H 7D 2S', 'Four of a Kind'],
+    ['KS KC KH 4D 4S', 'Full House'],
+    ['2D 7D 9D JD KD', 'Flush'],
+    ['4S 5C 6H 7D 8S', 'Straight'],
+    ['QS QC QH 3D 8S', 'Three of a Kind'],
+    ['9S 9C 4H 4D AS', 'Two Pair'],
+    ['JS JC 2H 6D 9S', 'One Pair'],
+    ['2S 5C 8H JD KS', 'High Card - KING'],
+    ['AS 3C 6H 9D QS', 'High Card - ACE'],
+
+    //aces count both high and low in straights
+    ['0S JC QH KD AS', 'Straight'],
+    ['AS 2C 3H 4D 5S', 'Straight'],
+    ['AH 2H 3H 4H 5H', 'Straight Flush'],
+    ['KS AC 2H 3D 4S', 'High Card - ACE'], //straights don't wrap around
+
+    //duplicate ranks inside a five-rank window are not straights
+    ['2S 2C 3H 4D 5S', 'One Pair'],
+    ['3S 3C 3H 4D 5S', 'Three of a Kind'],
+    ['2S 2C 3H 3D 4S', 'Two Pair'],
+    ['0S 0C JH QD AS', 'One Pair'],
+
+    //card order doesn't matter
+    ['AS KS QS JS 0S', 'Royal Flush'],
+    ['8S 4C 7H 5D 6S', 'Straight'],
+    ['4D KS 4S KC KH', 'Full House'],
+]
+
+for (const [codes, expected] of cases) {
+    test(`${codes} is ${expected}`, () => {
+        assert.equal(calculateHand(hand(codes)), expected)
+    })
+}
