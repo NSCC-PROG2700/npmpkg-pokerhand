@@ -41,6 +41,10 @@ const isStraight = hand => {
     const cardPositions = hand.map(card => {
         return cardOrder.indexOf(card.value)
     })
+    //a straight needs five distinct ranks (rules out pairs/trips inside the window)
+    if(new Set(cardPositions).size !== 5) return false
+    //ace-high straight (10-J-Q-K-A); ace sits at position 0 so the window loop misses it
+    if(isRoyal(hand)) return true
     for(let i=0;i<=8;i++){
         const straightPositions = Array(5).fill(i).map((num,idx) => num+idx)
         if(cardPositions.every(position => straightPositions.includes(position)))

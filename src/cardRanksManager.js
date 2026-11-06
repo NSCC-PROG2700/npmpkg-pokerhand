@@ -41,7 +41,8 @@ module.exports = {
             }
         }
 
-        const start = Math.floor(Math.random() * 9)
+        //every 5-card window: A-5 through 10-A (or 9-K when the high ace is excluded)
+        const start = Math.floor(Math.random() * (cardRanksCopy.length - 4))
         return cardRanksCopy.slice(start, start + 5)
     }
 }

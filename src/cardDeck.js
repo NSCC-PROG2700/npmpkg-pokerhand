@@ -1,6 +1,6 @@
 const _ = require('lodash')
 
-deck = [
+const deck = [
     {
         rank:{
             code: 'A',

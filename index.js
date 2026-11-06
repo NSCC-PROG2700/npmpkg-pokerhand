@@ -1,7 +1,7 @@
 const suitsManager = require('./src/cardSuitsManager')
 const ranksManager = require('./src/cardRanksManager')
 const cardGenerator = require('./src/cardGenerator')
-const payload = require('./src/payload')
+const createPayload = require('./src/payload')
 const _ = require('lodash')
 const handCalculator = require('./src/handCalculator')
 const cardDeck = require('./src/cardDeck')
@@ -19,19 +19,17 @@ const functions = {
           return cardGenerator.generateCard(rank, suit)
         })
       
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateStraightFlush: () => {
         const suit = suitsManager.getRandomSuit()
         const ranks = ranksManager.getRandomStraightRanks({ excludeHighAce: true })
       
-        cards = ranks.map(rank => {
+        const cards = ranks.map(rank => {
           return cardGenerator.generateCard(rank, suit)
         })
       
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateFourOfAKind: () => {
         const suits = suitsManager.getAllSuits()
@@ -50,8 +48,7 @@ const functions = {
                                                      suitsManager.getRandomSuit())
         cards.push(extraCard)
         
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateFullHouse: () => {
         const threeOfAKindSuits = suitsManager.getRandomSuit({ numberOfSuits: 3 })
@@ -65,8 +62,7 @@ const functions = {
           return cardGenerator.generateCard(allRanks[index], suit)
         })
       
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateFlush: () => {
         let cards;
@@ -80,8 +76,7 @@ const functions = {
           })
         } while( handCalculator.calculateHand(cards) !== 'Flush' )
       
-        payload.cards = cards
-        return payload
+        return createPayload(cards)
     },
     generateStraight: () => {
         const ranks = ranksManager.getRandomStraightRanks()
@@ -91,8 +86,7 @@ const functions = {
           return cardGenerator.generateCard(rank, suits[index])
         })
       
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateThreeOfAKind: () => {
         const suits = suitsManager.getRandomSuit({ numberOfSuits: 3 })
@@ -114,8 +108,7 @@ const functions = {
         })
       
         //build the payload
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateTwoPair: () => {
         const firstPairSuits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
@@ -133,8 +126,7 @@ const functions = {
         cards.push(cardGenerator.generateCard(fifthCardRank, suitsManager.getRandomSuit()))
       
         //build the payload
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generatePair: () => {
         const suits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
@@ -156,8 +148,7 @@ const functions = {
         })
       
         //build the payload
-        payload.cards = _.shuffle(cards)
-        return payload
+        return createPayload(_.shuffle(cards))
     },
     generateHighCard: () => {
         let cards; 
@@ -172,8 +163,7 @@ const functions = {
         } while (!handCalculator.calculateHand(cards).toUpperCase().includes('HIGH CARD'))
         
         //build the payload
-        payload.cards = _.shuffle(cards)
-        return payload 
+        return createPayload(_.shuffle(cards))
     },
     generateRandomHand: () => {
         //draw five cards from a shuffled deck
@@ -185,8 +175,7 @@ const functions = {
         })
 
         //build the payload
-        payload.cards = cards
-        return payload 
+        return createPayload(cards)
     }
 }
 
