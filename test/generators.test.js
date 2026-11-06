@@ -91,3 +91,7 @@ test('loading the package creates no globals', () => {
     assert.equal(globalThis.cards, undefined)
     assert.equal(globalThis.deck, undefined)
 })
+
+test('calculateHand is exported', () => {
+    assert.equal(pkg.calculateHand(pkg.generateFullHouse().cards), 'Full House')
+})

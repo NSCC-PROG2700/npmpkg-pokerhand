@@ -40,6 +40,9 @@ const until = (handName, makeCards) => {
 module.exports = {
     getVersion: () => pjson.version,
 
+    //name the poker hand made by five cards, e.g. 'Full House' or 'High Card - KING'
+    calculateHand: handCalculator.calculateHand,
+
     generateRoyalFlush: () => createPayload(_.shuffle(suited(ranksManager.getRoyalFlushRanks()))),
 
     generateStraightFlush: () =>
