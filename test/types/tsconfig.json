@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "noEmit": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "allowJs": true,
+        "checkJs": true,
+        "types": []
+    },
+    "files": ["usage.ts", "usage.js"]
+}

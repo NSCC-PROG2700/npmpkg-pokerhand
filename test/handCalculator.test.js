@@ -49,16 +49,21 @@ for (const [codes, expected] of cases) {
     })
 }
 
-//scoring all 2,598,960 possible hands must match the standard poker counts
-test('every possible hand scores with the standard frequencies', () => {
+//scoring all 2,598,960 possible hands must match the standard poker counts, and they must
+//fall into exactly 7,462 distinct strengths (the number of different hand ranks in poker)
+test('every possible hand scores with the standard frequencies and 7,462 distinct ranks', () => {
+    const { evaluate } = require('../src/handCalculator')
     const deck = require('../src/cardDeck').getFresh()
         .map(({ rank, suit }) => ({ value: rank.value, suit: suit.name }))
     const counts = {}
+    const strengths = new Set()
     const hand = []
     const deal = (start, depth) => {
         if (depth === 5) {
-            const name = calculateHand(hand).replace(/ - .*/, '')
-            counts[name] = (counts[name] || 0) + 1
+            const { name, strength } = evaluate(hand)
+            const type = name.replace(/ - .*/, '')
+            counts[type] = (counts[type] || 0) + 1
+            strengths.add(strength.join())
             return
         }
         for (let i = start; i <= deck.length - (5 - depth); i++) {
@@ -80,6 +85,7 @@ test('every possible hand scores with the standard frequencies', () => {
         'One Pair': 1098240,
         'High Card': 1302540,
     })
+    assert.equal(strengths.size, 7462)
 })
 
 //bad input throws a TypeError naming the problem instead of returning a wrong answer

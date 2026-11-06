@@ -1,10 +1,10 @@
 //build a new payload object on every call so results from separate
 //generator calls never share (and overwrite) the same object
-const createPayload = cards => ({
+const createPayload = (cards, { deckId = 'testdeck', remaining = 47 } = {}) => ({
     success: true,
-    deck_id: "testdeck",
+    deck_id: deckId,
     cards,
-    remaining: 47
+    remaining
 })
 
 module.exports = createPayload

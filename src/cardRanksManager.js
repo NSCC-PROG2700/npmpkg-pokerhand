@@ -1,5 +1,6 @@
 const cardRanks = require('./cardRanks')
 const _ = require('lodash')
+const random = require('./random')
 
 const ACE = cardRanks.find(rank => rank.code === 'A')
 
@@ -19,6 +20,6 @@ module.exports = {
         const straights = (options && options.excludeHighAce)
             ? STRAIGHTS.slice(0, -1)
             : STRAIGHTS
-        return _.sample(straights)
+        return random.sample(straights)
     }
 }
