@@ -37,12 +37,7 @@ const until = (handName, makeCards) => {
     return cards
 }
 
-module.exports = {
-    getVersion: () => pjson.version,
-
-    //name the poker hand made by five cards, e.g. 'Full House' or 'High Card - KING'
-    calculateHand: handCalculator.calculateHand,
-
+const generators = {
     generateRoyalFlush: () => createPayload(_.shuffle(suited(ranksManager.getRoyalFlushRanks()))),
 
     generateStraightFlush: () =>
@@ -73,4 +68,46 @@ module.exports = {
     generateRandomHand: () => createPayload(
         cardDeck.getShuffled().slice(0, 5).map(({ rank, suit }) => cardGenerator.generateCard(rank, suit))
     ),
+}
+
+//the generator for each hand type, keyed by the name calculateHand gives that hand
+const GENERATORS_BY_TYPE = {
+    'Royal Flush': generators.generateRoyalFlush,
+    'Straight Flush': generators.generateStraightFlush,
+    'Four of a Kind': generators.generateFourOfAKind,
+    'Full House': generators.generateFullHouse,
+    'Flush': generators.generateFlush,
+    'Straight': generators.generateStraight,
+    'Three of a Kind': generators.generateThreeOfAKind,
+    'Two Pair': generators.generateTwoPair,
+    'One Pair': generators.generatePair,
+    'High Card': generators.generateHighCard,
+}
+const handTypes = Object.freeze(Object.keys(GENERATORS_BY_TYPE))
+
+//ignore case, spaces, hyphens and underscores, so 'full-house' and 'FULL_HOUSE' match 'Full House'
+const normalize = name => name.toLowerCase().replace(/[\s_-]/g, '')
+const generatorsByKey = new Map(
+    Object.entries(GENERATORS_BY_TYPE).map(([type, generate]) => [normalize(type), generate])
+)
+
+module.exports = {
+    getVersion: () => pjson.version,
+
+    //name the poker hand made by five cards, e.g. 'Full House' or 'High Card - KING'
+    calculateHand: handCalculator.calculateHand,
+
+    //the hand types generateHand accepts, strongest first
+    handTypes,
+
+    //generate a hand by type name, e.g. generateHand('Full House')
+    generateHand: type => {
+        const generate = typeof type === 'string' && generatorsByKey.get(normalize(type))
+        if (!generate) {
+            throw new TypeError(`unknown hand type ${JSON.stringify(type)}; expected one of ${handTypes.join(', ')}`)
+        }
+        return generate()
+    },
+
+    ...generators,
 }

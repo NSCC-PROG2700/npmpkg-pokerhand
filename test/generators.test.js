@@ -95,3 +95,43 @@ test('loading the package creates no globals', () => {
 test('calculateHand is exported', () => {
     assert.equal(pkg.calculateHand(pkg.generateFullHouse().cards), 'Full House')
 })
+
+describe('generateHand', () => {
+    test('handTypes lists the ten hand types, strongest first', () => {
+        assert.deepEqual(pkg.handTypes, [
+            'Royal Flush', 'Straight Flush', 'Four of a Kind', 'Full House', 'Flush',
+            'Straight', 'Three of a Kind', 'Two Pair', 'One Pair', 'High Card',
+        ])
+        assert.ok(Object.isFrozen(pkg.handTypes))
+    })
+
+    //what generateHand(type) produces scores back as that same type
+    for (const type of pkg.handTypes) {
+        test(`generateHand('${type}') produces a valid ${type}`, () => {
+            for (let i = 0; i < 200; i++) {
+                const payload = pkg.generateHand(type)
+                assertValidPayload(payload)
+                assert.ok(pkg.calculateHand(payload.cards).startsWith(type))
+            }
+        })
+    }
+
+    test('ignores case, spaces, hyphens and underscores', () => {
+        for (const type of ['full house', 'FULL HOUSE', 'full-house', 'Full_House', 'fullhouse', ' Full House '])
+            assert.equal(pkg.calculateHand(pkg.generateHand(type).cards), 'Full House', type)
+    })
+
+    const invalid = [
+        ['an unknown type', 'Five of a Kind', /unknown hand type "Five of a Kind"; expected one of Royal Flush, .*High Card/],
+        ['an empty string', '', /unknown hand type ""/],
+        ['a generator function name', 'generatePair', /unknown hand type "generatePair"/],
+        ['an inherited property name', 'constructor', /unknown hand type "constructor"/],
+        ['a non-string', 5, /unknown hand type 5/],
+        ['undefined', undefined, /unknown hand type undefined/],
+    ]
+    for (const [description, input, message] of invalid) {
+        test(`rejects ${description}`, () => {
+            assert.throws(() => pkg.generateHand(input), { name: 'TypeError', message })
+        })
+    }
+})

@@ -22,7 +22,24 @@ console.log(pokerhand.calculateHand(hand.cards)) // 'Full House'
 
 ## Generating hands
 
-Each function returns a new, randomly generated hand of that type, with the cards in random order.
+`generateHand(type)` generates a hand of any type by name:
+
+```js
+pokerhand.generateHand('Full House')
+pokerhand.generateHand('full-house')   // case, spaces, hyphens and underscores are ignored
+```
+
+`handTypes` lists every name it accepts, strongest first, which is handy for a menu or for checking a URL parameter:
+
+```js
+pokerhand.handTypes
+// [ 'Royal Flush', 'Straight Flush', 'Four of a Kind', 'Full House', 'Flush',
+//   'Straight', 'Three of a Kind', 'Two Pair', 'One Pair', 'High Card' ]
+```
+
+The names match what `calculateHand` returns, so `calculateHand(generateHand(type).cards)` gives back `type` (with the high card's value added for `'High Card'`). An unknown name throws a `TypeError` listing the valid ones.
+
+Each hand type also has its own function. Each returns a new, randomly generated hand of that type, with the cards in random order.
 
 | Function | Hand |
 |---|---|

@@ -46,6 +46,29 @@ export type HandName =
     | 'One Pair'
     | `High Card - ${CardValue}`
 
+/** The hand types `generateHand` accepts, e.g. `'Full House'`. */
+export type HandType =
+    | 'Royal Flush'
+    | 'Straight Flush'
+    | 'Four of a Kind'
+    | 'Full House'
+    | 'Flush'
+    | 'Straight'
+    | 'Three of a Kind'
+    | 'Two Pair'
+    | 'One Pair'
+    | 'High Card'
+
+/** Every hand type `generateHand` accepts, strongest first. Handy for building a menu. */
+export const handTypes: readonly HandType[]
+
+/**
+ * Generates a random hand of the given type, e.g. `generateHand('Full House')`.
+ * Case, spaces, hyphens and underscores are ignored, so `'full-house'` also works.
+ * @throws {TypeError} if the type isn't one of `handTypes`.
+ */
+export function generateHand(type: HandType | (string & {})): HandPayload
+
 /** Returns the installed package version, e.g. `'1.2.0'`. */
 export function getVersion(): string
 
