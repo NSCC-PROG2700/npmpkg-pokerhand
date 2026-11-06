@@ -1,106 +1,73 @@
-const suitsManager = require('./src/cardSuitsManager')
-const ranksManager = require('./src/cardRanksManager')
-const cardGenerator = require('./src/cardGenerator')
-const createPayload = require('./src/payload')
 const _ = require('lodash')
-const handCalculator = require('./src/handCalculator')
-const cardDeck = require('./src/cardDeck')
-const pjson = require('./package.json')
 const cardRanks = require('./src/cardRanks')
+const cardSuits = require('./src/cardSuits')
+const ranksManager = require('./src/cardRanksManager')
+const suitsManager = require('./src/cardSuitsManager')
+const cardGenerator = require('./src/cardGenerator')
+const cardDeck = require('./src/cardDeck')
+const createPayload = require('./src/payload')
+const handCalculator = require('./src/handCalculator')
+const pjson = require('./package.json')
+
+//pair up ranks and suits by position into cards
+const toCards = (ranks, suits) => ranks.map((rank, index) => cardGenerator.generateCard(rank, suits[index]))
+
+//the given ranks, all in one random suit
+const suited = ranks => {
+    const suit = _.sample(cardSuits)
+    return toCards(ranks, ranks.map(() => suit))
+}
 
 //build a hand made of groups of same-rank cards, e.g. [3, 2] for a full house.
 //each group gets a different rank, and the cards within a group get different suits
 const fromGroups = sizes => {
     const ranks = _.sampleSize(cardRanks, sizes.length)
-    const cards = sizes.flatMap((size, index) =>
-        _.sampleSize(suitsManager.getAllSuits(), size)
+    return sizes.flatMap((size, index) =>
+        _.sampleSize(cardSuits, size)
             .map(suit => cardGenerator.generateCard(ranks[index], suit))
     )
-    return _.shuffle(cards)
 }
 
-const functions = {
-    getVersion: () => {
-        return pjson.version
-    },
-    generateRoyalFlush: () => {
-        const suit = suitsManager.getRandomSuit()
-        const ranks = ranksManager.getRoyalFlushRanks()
-        
-        const cards = ranks.map(rank => {
-          return cardGenerator.generateCard(rank, suit)
-        })
-      
-        return createPayload(_.shuffle(cards))
-    },
-    generateStraightFlush: () => {
-        const suit = suitsManager.getRandomSuit()
-        const ranks = ranksManager.getRandomStraightRanks({ excludeHighAce: true })
-      
-        const cards = ranks.map(rank => {
-          return cardGenerator.generateCard(rank, suit)
-        })
-      
-        return createPayload(_.shuffle(cards))
-    },
-    generateFourOfAKind: () => createPayload(fromGroups([4, 1])),
-    generateFullHouse: () => createPayload(fromGroups([3, 2])),
-    generateFlush: () => {
-        let cards;
-
-        do {
-          const randomSuit = suitsManager.getRandomSuit()
-          const randomRanks = ranksManager.getRandomRank({ numberOfRanks: 5 })
-        
-          cards = randomRanks.map(rank => {
-            return cardGenerator.generateCard(rank, randomSuit)
-          })
-        } while( handCalculator.calculateHand(cards) !== 'Flush' )
-      
-        return createPayload(cards)
-    },
-    generateStraight: () => {
-        const ranks = ranksManager.getRandomStraightRanks()
-        const suits = suitsManager.getNonFlushSuitHand()
-      
-        const cards = ranks.map((rank, index) => {
-          return cardGenerator.generateCard(rank, suits[index])
-        })
-      
-        return createPayload(_.shuffle(cards))
-    },
-    generateThreeOfAKind: () => createPayload(fromGroups([3, 1, 1])),
-    generateTwoPair: () => createPayload(fromGroups([2, 2, 1])),
-    generatePair: () => createPayload(fromGroups([2, 1, 1, 1])),
-    generateHighCard: () => {
-        let cards; 
-        do{
-            cards = []
-            const ranks = ranksManager.getRandomRank({numberOfRanks: 5})
-            const suits = suitsManager.getRandomSuit({numberOfSuits: 5})
-          
-            ranks.forEach((rank, index) => {
-                cards.push(cardGenerator.generateCard(rank, suits[index]))
-            })
-        } while (!handCalculator.calculateHand(cards).toUpperCase().includes('HIGH CARD'))
-        
-        //build the payload
-        return createPayload(_.shuffle(cards))
-    },
-    generateRandomHand: () => {
-        //draw five cards from a shuffled deck
-        const fiveCards = cardDeck.getShuffled().slice(0,5)
-
-        const cards = []
-        fiveCards.forEach(card => {
-          cards.push(cardGenerator.generateCard(card.rank, card.suit))
-        })
-
-        //build the payload
-        return createPayload(cards)
-    }
+//keep making hands until one scores as the wanted hand type
+const until = (handName, makeCards) => {
+    let cards
+    do {
+        cards = makeCards()
+    } while (!handCalculator.calculateHand(cards).startsWith(handName))
+    return cards
 }
 
-const generateRandomHand = functions.generateRandomHand
+module.exports = {
+    getVersion: () => pjson.version,
 
-module.exports = functions
+    generateRoyalFlush: () => createPayload(_.shuffle(suited(ranksManager.getRoyalFlushRanks()))),
+
+    generateStraightFlush: () =>
+        createPayload(_.shuffle(suited(ranksManager.getRandomStraightRanks({ excludeHighAce: true })))),
+
+    generateFourOfAKind: () => createPayload(_.shuffle(fromGroups([4, 1]))),
+
+    generateFullHouse: () => createPayload(_.shuffle(fromGroups([3, 2]))),
+
+    //five different ranks in one suit, retried if they happen to form a straight
+    generateFlush: () => createPayload(until('Flush', () => suited(_.sampleSize(cardRanks, 5)))),
+
+    generateStraight: () =>
+        createPayload(_.shuffle(toCards(ranksManager.getRandomStraightRanks(), suitsManager.getNonFlushSuitHand()))),
+
+    generateThreeOfAKind: () => createPayload(_.shuffle(fromGroups([3, 1, 1]))),
+
+    generateTwoPair: () => createPayload(_.shuffle(fromGroups([2, 2, 1]))),
+
+    generatePair: () => createPayload(_.shuffle(fromGroups([2, 1, 1, 1]))),
+
+    //five different ranks in mixed suits, retried if they happen to form a straight
+    generateHighCard: () => createPayload(_.shuffle(until('High Card', () =>
+        toCards(_.sampleSize(cardRanks, 5), suitsManager.getNonFlushSuitHand())
+    ))),
+
+    //deal five cards from a shuffled deck
+    generateRandomHand: () => createPayload(
+        cardDeck.getShuffled().slice(0, 5).map(({ rank, suit }) => cardGenerator.generateCard(rank, suit))
+    ),
+}

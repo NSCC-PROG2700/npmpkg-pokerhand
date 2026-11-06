@@ -11,33 +11,6 @@ const STRAIGHTS = _.range(1, 11).map(low =>
 )
 
 module.exports = {
-    getRandomRank: (options) => {
-
-        let ranks = cardRanks
-
-        if(options && options.hasOwnProperty('exclude')){
-            if(Array.isArray(options.exclude)){
-                ranks = ranks.filter(rank => {
-                    return !options.exclude.includes(rank)
-                })
-            } else {
-                ranks = ranks.filter(rank => {
-                    return rank.code !== options.exclude.code
-                })
-            }
-        }
-
-        const shuffled = _.shuffle(ranks)
-        
-        if(options && options.hasOwnProperty('numberOfRanks')){
-            if(options.numberOfRanks > 1){
-                return shuffled.slice(0, options.numberOfRanks)
-            }            
-        } 
-
-        return shuffled[0]
-   
-    },
     getRoyalFlushRanks: () => {
         return cardRanks.filter(rank => rank.order >= 10)
     },

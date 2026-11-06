@@ -1,18 +1,18 @@
-const cardTemplate = require('./cardTemplate')
+const imageUrl = (code, extension) => `https://deckofcardsapi.com/static/img/${code}.${extension}`
 
 module.exports = {
+    //build a card in the deckofcardsapi.com format from a rank and a suit
     generateCard: (rank, suit) => {
-        const newCardCode = `${rank.code}${suit.code}`
-
-        const newCard = cardTemplate.getCardTemplate()
-        //console.log(newCard)
-        newCard.code = newCardCode
-        newCard.image = newCard.image.replace('[code]', newCardCode)
-        newCard.images.png = newCard.images.png.replace('[code]', newCardCode)
-        newCard.images.svg = newCard.images.svg.replace('[code]', newCardCode)
-        newCard.value = rank.value
-        newCard.suit = suit.name
-
-        return newCard
+        const code = `${rank.code}${suit.code}`
+        return {
+            code,
+            image: imageUrl(code, 'png'),
+            images: {
+                svg: imageUrl(code, 'svg'),
+                png: imageUrl(code, 'png'),
+            },
+            value: rank.value,
+            suit: suit.name,
+        }
     }
 }
