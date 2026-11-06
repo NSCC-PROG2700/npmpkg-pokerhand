@@ -79,6 +79,8 @@ It throws a `TypeError` if the input isn't exactly five valid, distinct cards. T
 
 `getVersion()` returns the installed package version.
 
+The package includes TypeScript type definitions (`Card`, `HandPayload`, `HandName` and the rest), so editors autocomplete the functions and card fields in both TypeScript and JavaScript.
+
 ## Development
 
 ```sh

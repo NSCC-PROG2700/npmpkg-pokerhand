@@ -12,10 +12,12 @@
   },
   "files": [
     "index.js",
-    "src"
+    "src",
+    "index.d.ts"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NSCC-PROG2700/npmpkg-pokerhand.git"
-  }
+  },
+  "types": "index.d.ts"
 }
