@@ -1,10 +1,19 @@
 const cardRanks = require('./cardRanks')
 const _ = require('lodash')
 
+const ACE = cardRanks.find(rank => rank.code === 'A')
+
+//the ten possible straights, from A-2-3-4-5 (ace low) up to 10-J-Q-K-A (ace high)
+const STRAIGHTS = _.range(1, 11).map(low =>
+    _.range(low, low + 5).map(order =>
+        order === 1 ? ACE : cardRanks.find(rank => rank.order === order)
+    )
+)
+
 module.exports = {
     getRandomRank: (options) => {
 
-        let ranks = [...cardRanks].slice(1) //remove the first ace
+        let ranks = cardRanks
 
         if(options && options.hasOwnProperty('exclude')){
             if(Array.isArray(options.exclude)){
@@ -30,19 +39,13 @@ module.exports = {
    
     },
     getRoyalFlushRanks: () => {
-        return cardRanks.slice(9)
+        return cardRanks.filter(rank => rank.order >= 10)
     },
     getRandomStraightRanks: (options) => {
-        const cardRanksCopy = [...cardRanks]
-
-        if(options && options.hasOwnProperty('excludeHighAce')){
-            if(options.excludeHighAce){
-                cardRanksCopy.pop() //remove high ace
-            }
-        }
-
-        //every 5-card window: A-5 through 10-A (or 9-K when the high ace is excluded)
-        const start = Math.floor(Math.random() * (cardRanksCopy.length - 4))
-        return cardRanksCopy.slice(start, start + 5)
+        //10-J-Q-K-A is excluded when building a straight flush (it would be a royal flush)
+        const straights = (options && options.excludeHighAce)
+            ? STRAIGHTS.slice(0, -1)
+            : STRAIGHTS
+        return _.sample(straights)
     }
 }
