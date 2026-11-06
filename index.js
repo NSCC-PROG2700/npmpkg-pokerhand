@@ -6,6 +6,18 @@ const _ = require('lodash')
 const handCalculator = require('./src/handCalculator')
 const cardDeck = require('./src/cardDeck')
 const pjson = require('./package.json')
+const cardRanks = require('./src/cardRanks')
+
+//build a hand made of groups of same-rank cards, e.g. [3, 2] for a full house.
+//each group gets a different rank, and the cards within a group get different suits
+const fromGroups = sizes => {
+    const ranks = _.sampleSize(cardRanks, sizes.length)
+    const cards = sizes.flatMap((size, index) =>
+        _.sampleSize(suitsManager.getAllSuits(), size)
+            .map(suit => cardGenerator.generateCard(ranks[index], suit))
+    )
+    return _.shuffle(cards)
+}
 
 const functions = {
     getVersion: () => {
@@ -31,39 +43,8 @@ const functions = {
       
         return createPayload(_.shuffle(cards))
     },
-    generateFourOfAKind: () => {
-        const suits = suitsManager.getAllSuits()
-        const fourOfAKindRank = ranksManager.getRandomRank()
-      
-        //generate the four of a kind cards
-        const cards = suits.map(suit => {
-          return cardGenerator.generateCard(fourOfAKindRank, suit)
-        })
-      
-        //generate one extra card
-        const additionalRank = ranksManager.getRandomRank({
-          exclude: fourOfAKindRank
-        })
-        const extraCard = cardGenerator.generateCard(additionalRank,
-                                                     suitsManager.getRandomSuit())
-        cards.push(extraCard)
-        
-        return createPayload(_.shuffle(cards))
-    },
-    generateFullHouse: () => {
-        const threeOfAKindSuits = suitsManager.getRandomSuit({ numberOfSuits: 3 })
-        const twoOfAKindSuits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
-        const ranks = ranksManager.getRandomRank({ numberOfRanks: 2 })
-      
-        const allSuits = [...threeOfAKindSuits, ...twoOfAKindSuits]
-        const allRanks = [...Array(3).fill(ranks[0]), ...Array(2).fill(ranks[1])]
-      
-        const cards = allSuits.map((suit, index) => {
-          return cardGenerator.generateCard(allRanks[index], suit)
-        })
-      
-        return createPayload(_.shuffle(cards))
-    },
+    generateFourOfAKind: () => createPayload(fromGroups([4, 1])),
+    generateFullHouse: () => createPayload(fromGroups([3, 2])),
     generateFlush: () => {
         let cards;
 
@@ -88,68 +69,9 @@ const functions = {
       
         return createPayload(_.shuffle(cards))
     },
-    generateThreeOfAKind: () => {
-        const suits = suitsManager.getRandomSuit({ numberOfSuits: 3 })
-        const rank = ranksManager.getRandomRank()
-      
-        //generate the three of a kind cards
-        const cards = suits.map(suit => {
-          return cardGenerator.generateCard(rank, suit)
-        })
-      
-        //generate and add two extra cards to go with the three of a kind
-        const options = {
-          numberOfRanks: 2,
-          exclude: rank //exclude the rank from the three of a kind
-        }
-        ranksManager.getRandomRank(options).forEach(rank => {
-          const newCard = cardGenerator.generateCard(rank, suitsManager.getRandomSuit())
-          cards.push(newCard)
-        })
-      
-        //build the payload
-        return createPayload(_.shuffle(cards))
-    },
-    generateTwoPair: () => {
-        const firstPairSuits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
-        const secondPairSuits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
-        const pairRanks = ranksManager.getRandomRank({ numberOfRanks: 2 })
-        const fifthCardRank = ranksManager.getRandomRank({ exclude: pairRanks })
-      
-        const cards = []
-        firstPairSuits.forEach(suit => {
-          cards.push(cardGenerator.generateCard(pairRanks[0], suit))
-        })
-        secondPairSuits.forEach(suit => {
-          cards.push(cardGenerator.generateCard(pairRanks[1], suit))
-        })
-        cards.push(cardGenerator.generateCard(fifthCardRank, suitsManager.getRandomSuit()))
-      
-        //build the payload
-        return createPayload(_.shuffle(cards))
-    },
-    generatePair: () => {
-        const suits = suitsManager.getRandomSuit({ numberOfSuits: 2 })
-        const pairRank = ranksManager.getRandomRank()
-      
-        //generate the pair
-        const cards = suits.map(suit => {
-          return cardGenerator.generateCard(pairRank, suit)
-        })
-      
-        //generate and add three extra cards to go with the pair
-        const options = {
-          numberOfRanks: 3,
-          exclude: pairRank //exclude the rank from the pair
-        }
-        ranksManager.getRandomRank(options).forEach(rank => {
-          const newCard = cardGenerator.generateCard(rank, suitsManager.getRandomSuit())
-          cards.push(newCard)
-        })
-      
-        //build the payload
-        return createPayload(_.shuffle(cards))
-    },
+    generateThreeOfAKind: () => createPayload(fromGroups([3, 1, 1])),
+    generateTwoPair: () => createPayload(fromGroups([2, 2, 1])),
+    generatePair: () => createPayload(fromGroups([2, 1, 1, 1])),
     generateHighCard: () => {
         let cards; 
         do{
