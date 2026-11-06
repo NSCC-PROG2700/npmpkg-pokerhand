@@ -160,4 +160,4 @@ npm test
 
 The tests check fixed example hands and hand comparisons, run every generator many times, and score all 2,598,960 possible hands against the standard poker counts and the 7,462 distinct hand ranks. They also type-check example code against the TypeScript definitions.
 
-Every push to `master` publishes to npm through GitHub Actions, after the tests pass. Bump the version in `package.json` first, or the publish will fail.
+Every push to `master` runs the tests through GitHub Actions and, if they pass, publishes to npm using npm trusted publishing (no token needed). It only publishes when the version in `package.json` isn't on npm yet, so bump the version to release; pushes without a bump just run the tests.
