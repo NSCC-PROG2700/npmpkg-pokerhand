@@ -48,3 +48,36 @@ for (const [codes, expected] of cases) {
         assert.equal(calculateHand(hand(codes)), expected)
     })
 }
+
+//scoring all 2,598,960 possible hands must match the standard poker counts
+test('every possible hand scores with the standard frequencies', () => {
+    const deck = require('../src/cardDeck').getFresh()
+        .map(({ rank, suit }) => ({ value: rank.value, suit: suit.name }))
+    const counts = {}
+    const hand = []
+    const deal = (start, depth) => {
+        if (depth === 5) {
+            const name = calculateHand(hand).replace(/ - .*/, '')
+            counts[name] = (counts[name] || 0) + 1
+            return
+        }
+        for (let i = start; i <= deck.length - (5 - depth); i++) {
+            hand[depth] = deck[i]
+            deal(i + 1, depth + 1)
+        }
+    }
+    deal(0, 0)
+
+    assert.deepEqual(counts, {
+        'Royal Flush': 4,
+        'Straight Flush': 36,
+        'Four of a Kind': 624,
+        'Full House': 3744,
+        'Flush': 5108,
+        'Straight': 10200,
+        'Three of a Kind': 54912,
+        'Two Pair': 123552,
+        'One Pair': 1098240,
+        'High Card': 1302540,
+    })
+})

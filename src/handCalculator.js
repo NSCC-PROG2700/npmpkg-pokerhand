@@ -1,102 +1,33 @@
-const cardOrder = [
-    'ACE','2','3','4','5','6','7','8','9','10','JACK','QUEEN','KING'
-]
+const _ = require('lodash')
+const cardRanks = require('./cardRanks')
+
+//look up a rank's numeric order (2-14) from a card's value, e.g. 'KING' -> 13
+const ORDER = Object.fromEntries(cardRanks.map(rank => [rank.value, rank.order]))
+const VALUE = Object.fromEntries(cardRanks.map(rank => [rank.order, rank.value]))
+
+//five distinct ranks in a row; the ace also counts low in A-2-3-4-5
+const isStraight = orders => {
+    const sorted = _.sortBy(orders)
+    if (_.uniq(sorted).length !== 5) return false
+    return sorted[4] - sorted[0] === 4 || sorted.join() === '2,3,4,5,14'
+}
 
 const calculateHand = hand => {
-    if(isRoyalFlush(hand)) return 'Royal Flush'
-    if(isStraightFlush(hand)) return 'Straight Flush'
-    if(isFourOfAKind(hand)) return 'Four of a Kind'
-    if(isFullHouse(hand)) return 'Full House'    
-    if(isFlush(hand)) return 'Flush'
-    if(isStraight(hand)) return 'Straight'
-    if(isThreeOfAKind(hand)) return 'Three of a Kind'
-    if(isTwoPair(hand)) return 'Two Pair'
-    if(isOnePair(hand)) return 'One Pair'
-    return `High Card - ${getHighCard(hand)}`
-}
+    const orders = hand.map(card => ORDER[card.value])
+    const flush = hand.every(card => card.suit === hand[0].suit)
+    const straight = isStraight(orders)
+    //how many cards share each rank, largest group first, e.g. '3,2' for a full house
+    const groups = Object.values(_.countBy(orders)).sort((a, b) => b - a).join()
 
-const isRoyalFlush = hand => {
-    return isRoyal(hand) && isFlush(hand)
-}
-
-const isStraightFlush = hand => {
-    return isFlush(hand) && isStraight(hand)
-}
-
-const isFourOfAKind = hand => {
-    return Object.values(getRankTally(hand)).includes(4)
-}
-
-const isFullHouse = hand => {
-    const valueCounts = Object.values(getRankTally(hand))
-    return valueCounts.length === 2
-        && valueCounts.includes(3)
-}
-
-const isFlush = hand => {
-    return hand.every(card => card.suit === hand[0].suit)
-}
-
-const isStraight = hand => {
-    const cardPositions = hand.map(card => {
-        return cardOrder.indexOf(card.value)
-    })
-    //a straight needs five distinct ranks (rules out pairs/trips inside the window)
-    if(new Set(cardPositions).size !== 5) return false
-    //ace-high straight (10-J-Q-K-A); ace sits at position 0 so the window loop misses it
-    if(isRoyal(hand)) return true
-    for(let i=0;i<=8;i++){
-        const straightPositions = Array(5).fill(i).map((num,idx) => num+idx)
-        if(cardPositions.every(position => straightPositions.includes(position)))
-        {
-            return true
-        }
-    }
-    return false
-}
-
-const isThreeOfAKind = hand => {
-    const valueCounts = Object.values(getRankTally(hand))
-    return valueCounts.length === 3
-        && valueCounts.includes(3)
-}
-
-const isTwoPair = hand => {
-    const valueCounts = Object.values(getRankTally(hand))
-    return valueCounts.length === 3
-        && valueCounts.includes(2)
-}
-
-const isOnePair = hand => {
-    return Object.values(getRankTally(hand)).length === 4
-}
-
-const getHighCard = hand => {
-    const cardPositions = hand.map(card => {
-        return cardOrder.indexOf(card.value)
-    })
-    return (cardPositions.includes(0)) 
-                ? cardOrder[0] 
-                : cardOrder[Math.max(...cardPositions)]
-}
-
-const isRoyal = hand => {
-    const royalPositions = [0, 9, 10, 11, 12] //A, 10, J, Q, K
-    return hand.map(card => {
-        return cardOrder.indexOf(card.value)
-    })
-    .every(position => royalPositions.includes(position))
-}
-
-const getRankTally = hand => {
-    return hand.reduce((tally, card) => {
-        if(!tally.hasOwnProperty(card.value)){
-            tally[card.value] = 1
-        } else {
-            tally[card.value] += 1
-        }
-        return tally
-    }, {})
+    if (straight && flush) return _.min(orders) === 10 ? 'Royal Flush' : 'Straight Flush'
+    if (groups === '4,1') return 'Four of a Kind'
+    if (groups === '3,2') return 'Full House'
+    if (flush) return 'Flush'
+    if (straight) return 'Straight'
+    if (groups === '3,1,1') return 'Three of a Kind'
+    if (groups === '2,2,1') return 'Two Pair'
+    if (groups === '2,1,1,1') return 'One Pair'
+    return `High Card - ${VALUE[_.max(orders)]}`
 }
 
 module.exports.calculateHand = calculateHand
